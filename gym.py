@@ -10,7 +10,7 @@ class Gym:
         self.loopbanden = [Apparaat("Loopband") for _ in range(loopbanden)]
         self.racks = [Apparaat("Rack") for _ in range(racks)]
         self.banken = [Apparaat("Bank") for _ in range(banken)]
-        self.sporters = []
+        self.sporters: list[Sporter] = []
         self.wachtrijen = {
             "Loopband": PriorityQueue(),
             "Rack": PriorityQueue(),
@@ -23,6 +23,12 @@ class Gym:
         self.sporters.append(sporter)
         self.bezoekers += 1
         return sporter
+    
+    def update_sporters(self, tijd: int):
+        for sporter in self.sporters:
+            if tijd > sporter.verlatingstijd:
+                if sporter.bezig == True:
+                    self.sporters.remove(sporter)
 
     def update_apparaat_status(self):
         for apparaten_lijst in [self.loopbanden, self.racks, self.banken]:
@@ -41,7 +47,7 @@ class Gym:
             verlatingstijd = tijd + bereken_tijd_in_gym()
             nieuwe_sporter = Sporter(oefeningen, verlatingstijd)
             self.sporters.append(nieuwe_sporter)
-            #self.nieuwe_sporter(oefeningen, verlatingstijd)
+
             """
             sporter = self.nieuwe_sporter()
             sporter.start_training(self)
@@ -82,4 +88,4 @@ class Gym:
         return gem_tijd_in_gym
     
     def __repr__(self):
-        return f"{self.gemiddelde_tijd_in_gym()}, {self.gemiddelde_wachttijd()}"
+        return f"{len(self.sporters)}" #f"{self.gemiddelde_tijd_in_gym()}, {self.gemiddelde_wachttijd()}"

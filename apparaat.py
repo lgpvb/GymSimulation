@@ -8,6 +8,6 @@ class Apparaat:
         self.bezet = True
         self.resterende_tijd = duur
 
-    def vrij_apparaat(self):
+    def beëindig_gebruik(self):
         self.bezet = False
         self.resterende_tijd = 0

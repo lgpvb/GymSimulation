@@ -28,4 +28,4 @@ def bereken_aantal_nieuwe_sporters(minute: float) -> int:
     if (60 <= minute < 180) or (690 <= minute < 840):
         return np.random.poisson(2)  # Piekuren
     
-    return np.random.poisson(1)  # Normale uren
+    return np.random.poisson(2/3)  # Normale uren
