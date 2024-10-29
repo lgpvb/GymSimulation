@@ -3,7 +3,7 @@ from queue import PriorityQueue
 from apparaat import Apparaat
 from sporter import Sporter
 from oefening import Oefening
-from distributions import generate_arrivals
+from distributions import *
 
 class Gym:
     def __init__(self, loopbanden, racks, banken):
@@ -35,10 +35,13 @@ class Gym:
 
     def simuleer_tijdstap(self, tijd):
         # Nieuwe sporters komen op basis van een Poisson-verdeling binnen, piektijden van 8:00 tot 10:00 en van 18:30 tot 21:00
-        nieuwe_sporters = generate_arrivals(tijd)
+        nieuwe_sporters = bereken_aantal_nieuwe_sporters(tijd)
         for _ in range(nieuwe_sporters):
             oefeningen = self.genereer_oefeningen()
-            self.nieuwe_sporter(oefeningen)
+            verlatingstijd = tijd + bereken_tijd_in_gym()
+            nieuwe_sporter = Sporter(oefeningen, verlatingstijd)
+            self.sporters.append(nieuwe_sporter)
+            #self.nieuwe_sporter(oefeningen, verlatingstijd)
             """
             sporter = self.nieuwe_sporter()
             sporter.start_training(self)

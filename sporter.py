@@ -6,9 +6,10 @@ from apparaat import Apparaat
 class Sporter:
     id_counter = itertools.count(1)  
 
-    def __init__(self, oefeningen):
+    def __init__(self, oefeningen, verlatingstijd: int):
         self.id = next(Sporter.id_counter)
         self.oefeningen = sorted(oefeningen, key=lambda x: x.prioriteit)
+        self.verlatingstijd = verlatingstijd
         self.wachttijd: int = 0
         self.tijd_in_gym: int = 0
 

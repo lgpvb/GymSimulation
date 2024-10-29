@@ -1,6 +1,6 @@
 import numpy as np
 
-def generate_exercise_duration(mean_duration: float) -> float:
+def bereken_tijd_oefening(mean_duration: float) -> float:
     """
     Genereer oefentijd volgens Weibull-verdeling
     k = 2.5 (shape parameter) geeft realistische spreiding
@@ -11,7 +11,7 @@ def generate_exercise_duration(mean_duration: float) -> float:
     
     return np.random.weibull(k) * lambda_param
 
-def generate_gym_duration() -> float:
+def bereken_tijd_in_gym() -> float:
     """
     Genereer totale gymtijd volgens Erlang-verdeling
     k = 3 geeft realistische vorm
@@ -21,7 +21,7 @@ def generate_gym_duration() -> float:
 
     return np.random.gamma(k, scale)
 
-def generate_arrivals(minute: float) -> int:
+def bereken_aantal_nieuwe_sporters(minute: float) -> int:
     """
     Genereer aantal nieuwe sporters volgens Poisson-verdeling
     """
