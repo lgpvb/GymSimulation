@@ -1,12 +1,30 @@
 from typing import Optional
+from distributions import bereken_tijd_oefening
 
 class Oefening:
-    def __init__(self, naam: str, prioriteit:int, duur:float, benodigdheden: Optional[list[str]]=None, optioneel_benodigdheden: Optional[list[str]]=None):
+    def __init__(self, naam: str, prioriteit:int, duur:int, benodigdheden: Optional[list[str]]=None, optionele_benodigdheden: Optional[list[str]]=None):
         self.naam = naam
-        self.duur = duur
-        self.benodigdheden = benodigdheden or []
-        self.optioneel_benodigdheden = optioneel_benodigdheden or []
+        self.duur = bereken_tijd_oefening(duur)
         self.prioriteit = prioriteit  
+        self.benodigdheden = benodigdheden or []
+        self.optionele_benodigdheden = optionele_benodigdheden or []
 
     def __repr__(self):
-        return f"Oefening({self.naam}, {self.duur} min, {self.benodigdheden})"
+        return f"Oefening({self.naam}, duurt {self.duur} min, waarvoor {self.benodigdheden} nodig zijn."
+
+    @staticmethod
+    def benodigde_apparaten(naam_oefening: str):
+        oefening_apparaten_mapping = {
+            'squats': ['racks'],  
+            'push-ups': [],
+            'deadlifts': ['barbells'],
+            'bench press': ['banken', 'barbells'], 
+            'pull-ups': ['racks'],
+            'lunges': [],  
+            'plank': [],
+            'bicep curls': ['dumbbells'],  
+            'tricep dips': ['dipbars', 'banken'],  
+            'leg press': ['leg press machine']
+        }
+        
+        return oefening_apparaten_mapping.get(naam_oefening.lower(), [])

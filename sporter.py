@@ -2,39 +2,46 @@ import itertools
 from functools import total_ordering
 from typing import Self
 from apparaat import Apparaat
+from oefening import Oefening
+from typing import Optional
 
-
+@total_ordering
 class Sporter:
-    id_counter = itertools.count(1)  
+    id_counter:int = itertools.count(1)  
+    vergelijking: str = 'vertrektijd'
 
-    def __init__(self, oefeningen, verlatingstijd: int):
+    def __init__(self, oefeningen: list[Oefening], vertrektijd: int):
         self.id = next(Sporter.id_counter)
         self.oefeningen = sorted(oefeningen, key=lambda x: x.prioriteit)
-        self.verlatingstijd: int = verlatingstijd
+        self.vertrektijd: int = vertrektijd
         self.wachttijd: int = 0
         self.tijd_in_gym: int = 0
         self.bezig: bool = False
 
-    def start_oefening(self, apparaat: Apparaat):
+    def start_oefening(self, oefening: Oefening,  tijd: int, apparaten: Optional[list[Apparaat]] = None, ):
         self.bezig = True
-        huidige_oefening = self.oefeningen[0]
-        if apparaat.naam in huidige_oefening.benodigdheden:
-            self.oefeningen.pop(0)
-        """
-        for oefening in self.oefeningen:
-            if gym.apparaat_beschikbaar(oefening):
-                gym.koppel_apparaat(oefening, self)
-            else:
-                gym.voeg_aan_wachtrij_toe(oefening, self)
-        """
-    
-    def eindig_oefening(self, apparaat: Apparaat):
+        self.oefeningen.remove(oefening)
+        if apparaten:
+            for apparaat in apparaten:
+                apparaat.gebruik_apparaat(tijd)
+
+    def eindig_oefening(self, tijd: int, apparaten: Optional[list[Apparaat]] = None):
         self.bezig = False
+        if apparaten:
+            for apparaat in apparaten:
+                apparaat.gebruik_apparaat(tijd)
 
-    
-    @total_ordering
     def __lt__(self, other: Self):
-        return self.wachttijd < other.wachttijd
-
-    def __eq__(self, other: Self):
-        return self.id == other.id
+        match self.vergelijking:
+            case 'vertrektijd':
+                return self.vertrektijd < other.vertrektijd
+            case 'wachttijd':
+                return self.wachttijd < other.wachttijd
+    
+    def __repr__(self):
+        return f"Sporter(id={self.id}, " \
+                f"vertrektijd={self.vertrektijd}, " \
+                f"wachttijd={self.wachttijd}, " \
+                f"tijd_in_gym={self.tijd_in_gym}, " \
+                f"bezig={self.bezig}, " \
+                f"oefeningen={self.oefeningen})" 

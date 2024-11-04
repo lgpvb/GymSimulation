@@ -3,12 +3,14 @@ from simulatie import simulatie
 from gym import Gym
 
 if __name__ == "__main__":
+    """ 
     loopbanden = int(input("Aantal loopbanden: "))
     racks = int(input("Aantal racks: "))
     banken = int(input("Aantal banken: "))
-    looptijd = 990
+    """
+    looptijd = 990 # Gym opent om 7:00 en sluit 23:30. 990 = 23*60 + 30 - 7*60
 
-    simulatie(looptijd, loopbanden, racks, banken)
+    simulatie(looptijd, loopbanden=20, racks=20, banken=20, barbells=20, dumbbells=20)
 
     """  
     # Tijdstippen om te analyseren (in minuten vanaf 7:00)
