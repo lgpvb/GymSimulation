@@ -32,16 +32,19 @@ class Sporter:
                 apparaat.gebruik_apparaat(tijd)
 
     def __lt__(self, other: Self):
+        return self.vertrektijd < other.vertrektijd
+        """
         match self.vergelijking:
             case 'vertrektijd':
                 return self.vertrektijd < other.vertrektijd
             case 'wachttijd':
                 return self.wachttijd < other.wachttijd
-    
+        """
+        
     def __repr__(self):
         return f"Sporter(id={self.id}, " \
-                f"vertrektijd={self.vertrektijd}, " \
-                f"wachttijd={self.wachttijd}, " \
-                f"tijd_in_gym={self.tijd_in_gym}, " \
-                f"bezig={self.bezig}, " \
-                f"oefeningen={self.oefeningen})" 
+                "vertrektijd={self.vertrektijd}, " \
+                "wachttijd={self.wachttijd}, " \
+                "tijd_in_gym={self.tijd_in_gym}, " \
+                "bezig={self.bezig}, " \
+                "oefeningen={self.oefeningen})" 

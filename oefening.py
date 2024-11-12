@@ -1,5 +1,5 @@
 from typing import Optional
-from distributions import bereken_tijd_oefening
+from kansverdelingen import bereken_tijd_oefening
 
 class Oefening:
     def __init__(self, naam: str, prioriteit:int, duur:int, benodigdheden: Optional[list[str]]=None, optionele_benodigdheden: Optional[list[str]]=None):
@@ -20,11 +20,18 @@ class Oefening:
             'deadlifts': ['barbells'],
             'bench press': ['banken', 'barbells'], 
             'pull-ups': ['racks'],
-            'lunges': [],  
+            'lunges': ['dumbbells'],  
             'plank': [],
+            'hardlopen': ['loopbanden'],
             'bicep curls': ['dumbbells'],  
             'tricep dips': ['dipbars', 'banken'],  
             'leg press': ['leg press machine']
         }
         
-        return oefening_apparaten_mapping.get(naam_oefening.lower(), [])
+        result = oefening_apparaten_mapping.get(naam_oefening.lower(), [])
+
+        if result == []:
+            return None
+        else:
+            return result
+        

@@ -1,35 +1,40 @@
 import random
 import heapq 
 
-from queue import PriorityQueue
 from apparaat import Apparaat
 from sporter import Sporter
 from oefening import Oefening
-from distributions import bereken_aantal_nieuwe_sporters, bereken_tijd_in_gym, bereken_tijd_oefening
+from kansverdelingen import bereken_aantal_nieuwe_sporters, bereken_tijd_in_gym, bereken_tijd_oefening
 from apparaat import Apparaat
 from typing import Optional
 
+from queue import PriorityQueue
 from collections import deque
 
 class Gym:
     def __init__(self, aantal_loopbanden: int, aantal_racks: int, aantal_banken: int, aantal_bb: int, aantal_db: int):
         self.sporters: list[Sporter] = []
         self.loopbanden = self.maak_apparaten("Loopband", aantal_loopbanden)
-        self.racks = self.maak_apparaten("Rack", aantal_loopbanden)
+        self.racks = self.maak_apparaten("Rack", aantal_racks)
         self.banken = self.maak_apparaten("Bank", aantal_banken)
         self.barbells = self.maak_apparaten("Barbell", aantal_bb)
         self.dumbbells = self.maak_apparaten("Dumbbell", aantal_db)
         self.bezoekers = 0
 
+    def simuleer_tijdstap(self, tijd: int):
+        self.nieuwe_sporters(tijd, aantal_oefeningen=6)
+        self.update_sporters(tijd)
+        self.verwijder_sporters(tijd)
+        self.update_apparaat_status(tijd)
+
     def maak_apparaten(self, type_apparaat: str, aantal):
-        apparaten = [Apparaat(type_apparaat+str(_) for _ in range(aantal))] 
+        apparaten = [Apparaat(type_apparaat+str(_)) for _ in range(aantal)] 
         heapq.heapify(apparaten) 
         return apparaten
 
-    @staticmethod
-    def apparaat_beschikbaar(apparaten: list[Apparaat]):
+    def apparaat_beschikbaar(self, apparaten: list[Apparaat]):
         """
-        Geeft aan of één type apparaat beschikbaar is
+        Geeft aan of een apparaat beschikbaar is
         """
         for apparaat in apparaten:
             if apparaat.bezet == False:
@@ -53,30 +58,34 @@ class Gym:
             beschikbaar_apparaat = self.apparaat_beschikbaar(apparaten)
             if beschikbaar_apparaat:
                 beschikbare_apparaten.append(beschikbaar_apparaat)
-
+              
         return beschikbare_apparaten
-                
-    def sporter_heap(self, sporter: Sporter, oefening: Oefening, eindtijd_oefening: int, beschikbare_apparaten: Optional[list[Apparaat]] = None):
+
+    def reheap_sporter(self, sporter: Sporter, oefening: Oefening, eindtijd_oefening: int, beschikbare_apparaten: Optional[list[Apparaat]] = None):
         self.sporters.remove(sporter)
         sporter.start_oefening(oefening, eindtijd_oefening, beschikbare_apparaten)
         heapq.heappush(self.sporters, sporter)
 
-    def sporter_in_wachtrij(self, resterende_apparaten: list[Apparaat]):
+    def sporter_in_wachtrij(self, sporter: Sporter, resterende_apparaten: list[Apparaat]):
         """
         Zet sporter in wachtrij(en) voor apparaten
         """
         soort_apparaten = {}
-        apparaten = {}
+
         for benodigd in resterende_apparaten: 
-            apparaten[benodigd] = getattr(self, benodigd)
+            soort_apparaten[benodigd] = getattr(self, benodigd)
         
         for benodigd, apparaten in soort_apparaten.items():
             for apparaat in apparaten:
-                if apparaat.wachtrij.qsize() <= 1:
+                if apparaat.wachtrij.qsize() == 0:
                     vars(self)[benodigd].remove(apparaat)
-                    apparaat.wachtrij = 1
+                    apparaat.wachtrij.put(sporter)
                     heapq.heappush(vars(self)[benodigd], apparaat)
                     break
+                else:
+                    pass    
+       
+
 
     def update_sporters(self, tijd: int):
         for sporter in self.sporters:
@@ -85,15 +94,16 @@ class Gym:
                     benodigde_apparaten = Oefening.benodigde_apparaten(oefening.naam)
                     eindtijd_oefening = tijd + oefening.duur
                     beschikbare_apparaten = self.apparaten_beschikbaar(benodigde_apparaten)
-                    if beschikbare_apparaten == None:
-                        self.sporter_heap(sporter, oefening, eindtijd_oefening)
+                    if benodigde_apparaten == None:
+                        self.reheap_sporter(sporter, oefening, eindtijd_oefening)
                         break
                     elif len(beschikbare_apparaten) == len(benodigde_apparaten):
-                        self.sporter_heap(sporter, oefening, eindtijd_oefening, beschikbare_apparaten)
+                        self.reheap_sporter(sporter, oefening, eindtijd_oefening, beschikbare_apparaten)
                         break
                     else:
                         resterende_apparaten = list(set(benodigde_apparaten) - set(beschikbare_apparaten))
-                        self.sporter_in_wachtrij(resterende_apparaten)
+                        self.sporter_in_wachtrij(sporter, resterende_apparaten)
+                        break
 
     def nieuwe_sporters(self, tijd: int, aantal_oefeningen: int):
         aantal_nieuwe_sporters = bereken_aantal_nieuwe_sporters(tijd)
@@ -112,44 +122,33 @@ class Gym:
         """
         Sporter.vergelijking = 'vertrektijd'
         if len(self.sporters) > 0:
-            while heapq.nsmallest(1, self.sporters)[0] == tijd:
+            while self.sporters and heapq.nsmallest(1, self.sporters)[0].vertrektijd <= tijd:
                 vertrekkende_sporter = heapq.heappop(self.sporters)
                 if vertrekkende_sporter.bezig == True:
-                    vertrekkende_sporter.eindig_oefening()
+                    vertrekkende_sporter.eindig_oefening(tijd)
                 self.bezoekers -= 1
 
     def update_apparaat_status(self, tijd: int):
         for apparaten_lijst in [self.loopbanden, self.racks, self.banken, self.barbells, self.dumbbells]:
             for apparaat in apparaten_lijst:
-                if apparaat.tijdstip_onbezet == tijd:
+                if apparaat.tijdstip_waarop_onbezet == tijd:
                     apparaat.bezet = False
-                elif apparaat.tijdstip_onbezet < tijd:
-                    print("Apparaat zou onbezet moeten zijn...")
-                
     
-    def simuleer_tijdstap(self, tijd: int):
-        self.nieuwe_sporters(tijd, aantal_oefeningen=6)
-        self.update_sporters(tijd)
-        self.verwijder_sporters(tijd)
-        self.update_apparaat_status(tijd)
-    
-    def gemiddelde_wachttijd(self):
+    def gemiddelde_wachttijd(self) -> float:
         totale_wachttijd = 0
         for sporter in self.sporters:
             totale_wachttijd  += sporter.wachttijd
 
         gem_wachttijd   = totale_wachttijd / self.bezoekers if self.bezoekers > 0 else 0
-
         return gem_wachttijd
 
-    def gemiddelde_tijd_in_gym(self):
+    def gemiddelde_tijd_in_gym(self) -> float:
         totale_tijd_in_gym = 0
 
         for sporter in self.sporters:
             totale_tijd_in_gym += sporter.tijd_in_gym
         
         gem_tijd_in_gym = totale_tijd_in_gym / self.bezoekers if self.bezoekers > 0 else 0
-        
         return gem_tijd_in_gym
     
     def aantal_bezette_apparaten(self, apparaten: list[Apparaat]) -> int:
@@ -160,15 +159,25 @@ class Gym:
         
         return aantal_apparaten
     
+    def aantal_bezig(self):
+        aantal_bezig = 0
+        for sporter in self.sporters:
+            if sporter.bezig == True:
+                aantal_bezig += 1
+
+        return aantal_bezig 
+    
     def genereer_oefeningen(self, aantal_oefeningen: int):
         oefeningen = [
-            Oefening("Squats", 0, bereken_tijd_oefening(15), ["Rack"]),
-            Oefening("Push-ups", 0, bereken_tijd_oefening(10), []),
-            Oefening("Deadlifts", 0, bereken_tijd_oefening(15), ["Barbell"]),
-            Oefening("Bench press", 0, bereken_tijd_oefening(15), ["Bench", "Barbell"]),
-            Oefening("Pull-ups", 0, bereken_tijd_oefening(10), ["Rack"]),
-            Oefening("Lunges", 0, bereken_tijd_oefening(15), [], ['Dumbbells']),
-            Oefening("Plank", 0, bereken_tijd_oefening(5), [])
+            Oefening("Squats", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Squats")),
+            Oefening("Push-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Push-ups")),
+            Oefening("Deadlifts", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Deadlifts")),
+            Oefening("Bench press", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Bench press")),
+            Oefening("Pull-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Pull-ups")),
+            Oefening("Lunges", 0, bereken_tijd_oefening(15), [], Oefening.benodigde_apparaten("Lunges")),
+            Oefening("Hardlopen", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Loopband")),
+            Oefening("Plank", 0, bereken_tijd_oefening(5), []),
+            Oefening("Bicep curls", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Bicep curls"))
         ]
         
         geselecteerde_oefeningen = random.sample(oefeningen, aantal_oefeningen)
@@ -182,11 +191,17 @@ class Gym:
     def __repr__(self):
         loopbanden_bezet = self.aantal_bezette_apparaten(self.loopbanden)
         banken_bezet = self.aantal_bezette_apparaten(self.banken)
-        racks_bezet = self.aantal_bezette_apparaten(self.racks)        
+        racks_bezet = self.aantal_bezette_apparaten(self.racks)
+        dumbbells_bezet = self.aantal_bezette_apparaten(self.dumbbells)        
+        barbells_bezet = self.aantal_bezette_apparaten(self.barbells)        
+        bezig = self.aantal_bezig()
 
         return f"Aantal sporters: {self.bezoekers} \
+                 Aantal bezige sporters: {bezig} \
                  Aantal bezette loopbanden: {loopbanden_bezet} \
                  Aantal bezette banken: {banken_bezet} \
-                 Aantal bezette racks: {racks_bezet}"
+                 Aantal bezette racks: {racks_bezet} \
+                 Aantal bezette dumbbells: {dumbbells_bezet} \
+                 Aantal bezette barbells: {barbells_bezet}"
     
     

@@ -8,16 +8,16 @@ def bereken_tijd_oefening(mean_duration: float) -> float:
     # lambda parameter zo gekozen dat expected value = mean_duration
     lambda_param = mean_duration / np.random.gamma(1 + 1/k)
     
-    return np.random.weibull(k) * lambda_param
+    return np.round(np.random.weibull(k) * lambda_param).astype(int)
 
 def bereken_tijd_in_gym() -> float:
     """
-    Genereer gymtijd volgens Erlang-verdeling
+    Genereer gymtijd volgens Erlang-verdeling (speciaal geval van Gamma-verdeling)
     """
     k = 3  # shape parameter
     scale = 25  # Voor gemiddelde van 75 minuten
 
-    return np.random.gamma(k, scale)
+    return np.round(np.random.gamma(k, scale)).astype(int)
 
 def bereken_aantal_nieuwe_sporters(minute: float) -> int:
     """
@@ -26,4 +26,4 @@ def bereken_aantal_nieuwe_sporters(minute: float) -> int:
     if (60 <= minute < 180) or (690 <= minute < 840):
         return np.random.poisson(11/6)  # Piekuren
     
-    return np.random.poisson(2/3)  # Normale uren
+    return np.round(np.random.poisson(1)).astype(int)  # Normale uren
