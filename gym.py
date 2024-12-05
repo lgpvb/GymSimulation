@@ -14,7 +14,7 @@ from collections import deque
 class Gym:
     def __init__(self, aantal_loopbanden: int, aantal_racks: int, aantal_banken: int, aantal_bb: int, aantal_db: int):
         self.sporters: list[Sporter] = []
-        self.loopbanden = self.maak_apparaten("Loopband", aantal_loopbanden)
+        self.loopbanden = self.maak_apparaten("loopband", aantal_loopbanden)
         self.racks = self.maak_apparaten("Rack", aantal_racks)
         self.banken = self.maak_apparaten("Bank", aantal_banken)
         self.barbells = self.maak_apparaten("Barbell", aantal_bb)
@@ -85,8 +85,6 @@ class Gym:
                 else:
                     pass    
        
-
-
     def update_sporters(self, tijd: int):
         for sporter in self.sporters:
             if sporter.bezig == False:
@@ -103,6 +101,7 @@ class Gym:
                     else:
                         resterende_apparaten = list(set(benodigde_apparaten) - set(beschikbare_apparaten))
                         self.sporter_in_wachtrij(sporter, resterende_apparaten)
+                        print("WAGGARIJ")
                         break
 
     def nieuwe_sporters(self, tijd: int, aantal_oefeningen: int):
@@ -118,11 +117,11 @@ class Gym:
     def verwijder_sporters(self, tijd: int):
         """
         Verwijder sporters die alle oefeningen hebben voltooid, of ze zijn langer dan hun gewenste
-        tijd in de gym en hebben minstens 90% van de oefeningen voltooid.
+        tijd in de gym.
         """
         Sporter.vergelijking = 'vertrektijd'
         if len(self.sporters) > 0:
-            while self.sporters and heapq.nsmallest(1, self.sporters)[0].vertrektijd <= tijd:
+            while self.sporters and (heapq.nsmallest(1, self.sporters)[0].vertrektijd <= tijd or (not heapq.nsmallest(1, self.sporters)[0].oefeningen)):
                 vertrekkende_sporter = heapq.heappop(self.sporters)
                 if vertrekkende_sporter.bezig == True:
                     vertrekkende_sporter.eindig_oefening(tijd)
@@ -152,12 +151,12 @@ class Gym:
         return gem_tijd_in_gym
     
     def aantal_bezette_apparaten(self, apparaten: list[Apparaat]) -> int:
-        aantal_apparaten = 0
+        aantal_apparaten_bezet = 0
         for apparaat in apparaten:
             if apparaat.bezet == True:
-                aantal_apparaten += 1
+                aantal_apparaten_bezet += 1
         
-        return aantal_apparaten
+        return aantal_apparaten_bezet
     
     def aantal_bezig(self):
         aantal_bezig = 0
@@ -169,15 +168,15 @@ class Gym:
     
     def genereer_oefeningen(self, aantal_oefeningen: int):
         oefeningen = [
-            Oefening("Squats", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Squats")),
-            Oefening("Push-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Push-ups")),
-            Oefening("Deadlifts", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Deadlifts")),
-            Oefening("Bench press", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Bench press")),
-            Oefening("Pull-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Pull-ups")),
-            Oefening("Lunges", 0, bereken_tijd_oefening(15), [], Oefening.benodigde_apparaten("Lunges")),
-            Oefening("Hardlopen", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("Loopband")),
-            Oefening("Plank", 0, bereken_tijd_oefening(5), []),
-            Oefening("Bicep curls", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("Bicep curls"))
+            Oefening("squats", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("squats")),
+            Oefening("push-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("push-ups")),
+            Oefening("deadlifts", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("deadlifts")),
+            Oefening("bench press", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("bench press")),
+            Oefening("pull-ups", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("pull-ups")),
+            Oefening("lunges", 0, bereken_tijd_oefening(15), [], Oefening.benodigde_apparaten("lunges")),
+            Oefening("hardlopen", 0, bereken_tijd_oefening(15), Oefening.benodigde_apparaten("loopband")),
+            Oefening("plank", 0, bereken_tijd_oefening(5), []),
+            Oefening("bicep curls", 0, bereken_tijd_oefening(10), Oefening.benodigde_apparaten("bicep curls"))
         ]
         
         geselecteerde_oefeningen = random.sample(oefeningen, aantal_oefeningen)

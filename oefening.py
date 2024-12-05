@@ -14,6 +14,7 @@ class Oefening:
 
     @staticmethod
     def benodigde_apparaten(naam_oefening: str):
+        # De mapping geeft de variabele van Gym, niet de variabele van de instantie van Oefening
         oefening_apparaten_mapping = {
             'squats': ['racks'],  
             'push-ups': [],

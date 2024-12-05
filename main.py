@@ -1,12 +1,14 @@
 from optimalisatie import monte_carlo_optimalisatie, wachttijd_analyse
 from simulatie import simulatie
-from gym import Gym
 
 if __name__ == "__main__":
     """ 
     loopbanden = int(input("Aantal loopbanden: "))
     racks = int(input("Aantal racks: "))
     banken = int(input("Aantal banken: "))
+    barbells = int(input("Aantal barbells: "))
+    dumbbells = int(input("Aantal dumbbells: "))
+
     """
     looptijd = 990 # Gym opent om 7:00 en sluit 23:30. 990 = 23*60 + 30 - 7*60
 
